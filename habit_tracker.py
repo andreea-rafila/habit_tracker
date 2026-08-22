@@ -19,13 +19,46 @@ def check_in(data):
     done_today = data["log"].get(today, [])
 
     print(f"\nToday is {today}")
-    for habit in data["habits"]:
+
+    habits = data["habits"]
+    history = [] # our stack: stores (habit, was_added) pairs
+    i = 0
+    while i < len(habits):
+        habit = habits[i]
         if habit in done_today:
-            print(f"  [x] {habit} (already logged)")
+            print(f" [x] {habit} (already logged)")
+            i += 1
             continue
-        answer = input(f"  Did you do '{habit}' today? (y/n): ").strip().lower()
+        answer = input(f"  Did you do '{habit}' today? (y/n, or 'u' for undo): ").strip().lower()
+
+        if answer == "u":
+            if not history:
+                print("Nothing to undo.\n")
+                continue
+            last_habit, was_added = history.pop()
+            if was_added:
+                done_today.remove(last_habit)
+            i -= 1
+            print(f"  Undid '{last_habit}'.\n")
+            continue
+
         if answer == "y":
             done_today.append(habit)
+            history.append((habit, True))
+        else:
+            history.append((habit, False))
+        i += 1
+
+    confirm = input("Press Enter to save, or 'u' to undo the last answer: ").strip().lower()
+    if confirm == "u" and history:
+        last_habit, was_added = history.pop()
+        if was_added:
+            done_today.remove(last_habit)
+        print(f"  Undid '{last_habit}'.\n")
+        answer = input(f"  Did you do '{last_habit}' today? ").strip().lower()
+        if answer == "y":
+            done_today.append(last_habit)
+
     data["log"][today] = done_today
     save_data(data)
     print("Saved today's progress!\n")
