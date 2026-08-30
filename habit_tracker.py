@@ -1,5 +1,7 @@
 import json
 from datetime import date, timedelta
+from colorama import Fore, Style, init
+init(autoreset=True)
 
 DATA_FILE = "habits.json"
 
@@ -36,13 +38,13 @@ def check_in(data):
 
         if answer == "u":
             if not history:
-                print("Nothing to undo.\n")
+                print(Fore.YELLOW + "Nothing to undo.\n")
                 continue
             last_habit, was_added = history.pop()
             if was_added:
                 done_today.remove(last_habit)
             i -= 1
-            print(f"  Undid '{last_habit}'.\n")
+            print(Fore.YELLOW + f"  Undid '{last_habit}'.\n")
             continue
 
         if answer == "y":
@@ -66,7 +68,7 @@ def check_in(data):
     save_data(data)
     update_best_streaks(data)
     save_data(data)
-    print("Saved today's progress!\n")
+    print(Fore.GREEN + "Saved today's progress!\n")
 
 def update_best_streaks(data):
     for habit in data["habits"]:
@@ -98,14 +100,14 @@ def view_stats(data):
 def add_habit(data):
     new_habit = input("Enter new habit: ").strip()
     if new_habit == "":
-        print("Habit name can't be empty.\n")
+        print(Fore.RED + "Habit name can't be empty.\n")
         return
     if new_habit in data["habits"]:
-        print(f"'{new_habit}' is already being tracked.\n")
+        print(Fore.RED + f"'{new_habit}' is already being tracked.\n")
         return
     data["habits"].append(new_habit)
     save_data(data)
-    print(f"Added '{new_habit}'!\n")
+    print(Fore.GREEN + f"Added '{new_habit}'!\n")
 
 def remove_habit(data):
     if not data["habits"]:
@@ -122,13 +124,13 @@ def remove_habit(data):
         return
 
     if not choice.isdigit() or int(choice) < 1 or int(choice) > len(data["habits"]):
-        print("Invalid choice.\n")
+        print(Fore.RED + "Invalid choice.\n")
         return
 
     index = int(choice) - 1
     removed = data["habits"].pop(index)
     save_data(data)
-    print(f"Removed '{removed}'.\n")
+    print(Fore.GREEN + f"Removed '{removed}'.\n")
 
 def list_habits(data):
     if not data["habits"]:
@@ -145,12 +147,12 @@ def weekly_view(data, habit):
     for _ in range(7):
         day_str = str(day)
         if habit in data["log"].get(day_str, []):
-            symbols.append("✓")
+            symbols.append(Fore.GREEN + "✓")
         else:
-            symbols.append("x")
+            symbols.append(Fore.RED + "x")
         day -= timedelta(days=1)
     symbols.reverse()
-    return " ".join(symbols)
+    return " ".join(symbols) + Style.RESET_ALL
 
 def main():
     data = load_data()
