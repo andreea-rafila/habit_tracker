@@ -15,3 +15,5 @@ Run the script and use the menu to check in, view stats, or manage your habit li
 
 ## Setup
 This project uses [colorama](https://pypi.org/project/colorama/) for colored terminal text.
+
+Built as a first project — more features coming soon!
