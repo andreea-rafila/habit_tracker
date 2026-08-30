@@ -6,9 +6,12 @@ DATA_FILE = "habits.json"
 def load_data():
     try:
         with open(DATA_FILE, "r") as f:
-            return json.load(f)
+            data = json.load(f)
     except FileNotFoundError:
-        return {"habits": ["Study", "Gym", "Self-care"], "log": {}}
+        data = {"habits": ["Study", "Gym", "Self-care"], "log": {}}
+
+    data.setdefault("best_streaks", {})
+    return data
 
 def save_data(data):
     with open(DATA_FILE, "w") as f:
@@ -61,7 +64,15 @@ def check_in(data):
 
     data["log"][today] = done_today
     save_data(data)
+    update_best_streaks(data)
+    save_data(data)
     print("Saved today's progress!\n")
+
+def update_best_streaks(data):
+    for habit in data["habits"]:
+        current = show_streak(data, habit)
+        best = data["best_streaks"].get(habit, 0)
+        data["best_streaks"][habit] = max(current, best)
 
 def show_streak(data, habit):
     streak = 0
@@ -79,7 +90,9 @@ def view_stats(data):
     print("\n--- Current Streaks ---")
     for habit in data["habits"]:
         streak = show_streak(data, habit)
-        print(f" {habit}: {streak} day streak")
+        best = data["best_streaks"].get(habit, 0)
+        week = weekly_view(data, habit)
+        print(f" {habit}: {week} ({streak} day streak, best: {best})")
     print()
 
 def add_habit(data):
@@ -108,7 +121,7 @@ def remove_habit(data):
         print("Cancelled.\n")
         return
 
-    if not choice.isdigit() or int(choice) < 0 or int(choice) > len(data["habits"]):
+    if not choice.isdigit() or int(choice) < 1 or int(choice) > len(data["habits"]):
         print("Invalid choice.\n")
         return
 
@@ -125,6 +138,19 @@ def list_habits(data):
     for i, habit in enumerate(data["habits"], start=1):
         print(f" {i}) {habit}")
     print()
+
+def weekly_view(data, habit):
+    symbols = []
+    day = date.today()
+    for _ in range(7):
+        day_str = str(day)
+        if habit in data["log"].get(day_str, []):
+            symbols.append("✓")
+        else:
+            symbols.append("x")
+        day -= timedelta(days=1)
+    symbols.reverse()
+    return " ".join(symbols)
 
 def main():
     data = load_data()
